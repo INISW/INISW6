@@ -5,6 +5,13 @@ import json
 import os
 from werkzeug.utils import secure_filename
 
+import os.path as osp
+import tempfile
+
+import mmcv
+
+from mmtrack.apis import inference_mot, init_model
+
 views = Blueprint("views", __name__)
 
 # def jsonResponseFactory(data):
@@ -16,7 +23,8 @@ views = Blueprint("views", __name__)
 
 @views.route('/')
 def index():
-     return render_template('index.html')
+     # return render_template('index.html')
+     return json.dumps({'status':'200'})
 
 #-------------------------------------------
 
@@ -93,3 +101,113 @@ def keyword():
           print(results)
 
           return json.dumps({'status':'200'})
+
+
+@views.route('/test')
+def test():
+     config = '/Users/dahyeon/Documents/repos/mmtracking/mmdetection-2.28.2/mmtracking-0.14.0/configs/mot/deepsort/deepsort_faster-rcnn_fpn_4e_mot17-private-half.py'
+     video_input = '/Users/dahyeon/Documents/repos/mmtracking/mmdetection-2.28.2/mmtracking-0.14.0/demo/demo.mp4'
+     output='ouputs/demo_output.mp4'
+     checkpoint=None
+     score_thr=0.0
+     device='cpu'
+     show=False
+     backend='cv2'
+     fps=None
+
+     assert output or show
+     # load images
+     if osp.isdir(video_input):
+        imgs = sorted(
+            filter(lambda x: x.endswith(('.jpg', '.png', '.jpeg')),
+                   os.listdir(video_input)),
+            key=lambda x: int(x.split('.')[0]))
+        IN_VIDEO = False
+     else:
+        #들어옴
+        imgs = mmcv.VideoReader(video_input)  #The VideoReader class provides sequence like apis to access video frames. It will internally cache the frames which have been visited
+        IN_VIDEO = True
+
+        # print('\n-----\n')
+        # print("obtain basic information")
+
+        # print(len(imgs))
+        # print(imgs.width, imgs.height, imgs.resolution, imgs.fps)
+        #1920 1080 (1920, 1080) 3.0
+
+     # define output
+     if output is not None:
+        #안들어옴
+        if output.endswith('.mp4'):
+            OUT_VIDEO = True
+            out_dir = tempfile.TemporaryDirectory()
+            out_path = out_dir.name
+            _out = output.rsplit(os.sep, 1)
+            if len(_out) > 1:
+                os.makedirs(_out[0], exist_ok=True)
+        else:
+            OUT_VIDEO = False
+            out_path = output
+            os.makedirs(out_path, exist_ok=True)
+
+     if show or OUT_VIDEO:
+        if fps is None and IN_VIDEO:
+            fps = imgs.fps
+        if not fps:
+            raise ValueError('Please set the FPS for the output video.')
+        fps = int(fps)
+        # print("\n********************\n")
+        # print(fps)
+        # sys.exit()
+
+     print('\n-------------\n')
+     print('모델빌드\n')
+
+     # build the model from a config file and a checkpoint file
+     model = init_model(config, checkpoint, device=device)
+
+     print('\n-------완료------\n')
+     prog_bar = mmcv.ProgressBar(len(imgs))
+     # test and show/save the images
+     for i, img in enumerate(imgs):
+          frame_id = i
+          if isinstance(img, str):  # img가 str타입인지-> 아님
+               img = osp.join(video_input, img)
+
+          print('\n-------여기1------\n')
+          # print(img.shape) = (1080, 1920, 3)
+
+          result = inference_mot(model, img, frame_id)  #여기만 !
+          
+          # {'det_bboxes': [array([], shape=(0, 5), dtype=float32)], 'track_bboxes': [array([], shape=(0, 6), dtype=float32)]}
+          print('\n-------여기2------\n')
+
+          if output is not None:
+               if IN_VIDEO or OUT_VIDEO:
+                    out_file = osp.join(out_path, f'{frame_id:06d}.jpg')
+               else:
+                    out_file = osp.join(out_path, img.rsplit(os.sep, 1)[-1])
+          else:
+               out_file = None
+
+          print('\n**for문**\n')
+
+          model.show_result(
+               frame_id,
+               img,
+               result,
+               score_thr=score_thr,
+               show=show,
+               wait_time=int(1000. / fps) if fps else 0,
+               out_file=out_file,
+               backend=backend)
+          prog_bar.update()
+
+     if output and OUT_VIDEO:
+          print(f'making the output video at {output} with a FPS of {fps}')
+          mmcv.frames2video(out_path, output, fps=fps, fourcc='mp4v')
+          out_dir.cleanup()
+
+
+
+     return json.dumps({'status':'200'})
