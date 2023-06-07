@@ -1,0 +1,248 @@
+html {
+	scroll-behavior:smooth;
+}
+
+body {
+	overflow: hidden;
+	padding: 0px;
+	margin: 0px;
+}
+
+.fixed {
+	position: fixed;
+	top: 0;
+}
+
+#background {
+	
+	width: 100vw;
+	height: 100vh;
+	overflow: hidden;
+	padding: 0;
+	z-index: -1;
+}
+
+#bg-video {
+	position: absolute;
+	width: 100vw;
+}
+
+@media screen and (max-aspect-ratio: 16/9) {
+	#bg-video {
+		width: auto !important;
+		height: 100vh !important;
+	}
+}
+
+#bg-overlay {
+	position: fixed;
+	left:0px;
+	width:100%;
+	height:100vh;
+	z-index: -1;
+	bottom:0px;
+	background-color: rgba(8, 36, 58, 0.7);
+}
+
+#gradient-overlay {
+	position: absolute;
+	top:0px;
+	left:0px;
+	z-index: -1;
+	width:100%;
+	height:100vh;
+	/* background-color: rgba(8, 36, 58, 0.7); */
+	/* background: rgb(255,255,255);
+	background: rgb(0,0,0); */
+	/* background: linear-gradient(0deg, rgba(0,0,0,1) 10%, rgba(0,0,0,0.75) 35%, rgba(0,0,0,0.5) 50%, rgba(0,0,0,0.35) 65%, rgba(0,0,0,0) 100%); */
+	
+}
+
+/* navbar start ------------ */
+#navbar {
+
+	width: 100vw;
+	height: 100px;
+	
+	z-index: 2;
+	border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.nav-item {
+	position: absolute;
+	top: 50%;
+	transform: translateY(-50%);
+}
+
+#site-logo {
+	left: 30px;
+	width: auto;
+	height: 50px;
+}
+
+#site-links {
+	right: 80px;
+
+	display:flex;
+	justify-content: flex-end;
+	align-items: center;
+
+	width:auto;
+	height: 100%;
+	margin: 0px;
+
+	list-style: none;
+}
+
+.site-link {
+	padding:20px;
+	font-family:score;
+	font-size:18px;
+	vertical-align: middle;
+	color:white;
+}
+
+.site-link a {
+	position: relative;
+	padding:6px 12px;
+	color:#fff;
+}
+
+.site-link a::after {
+	content: "";
+
+	position:absolute;
+	left:50%;
+	bottom: -32px;
+	transform: translateX(-50%);
+
+	width: 0;
+	height: 3px;
+
+	background-color: black;
+	transition: all .3s ease-out;
+}
+
+.site-link a:hover::after {
+	width:100%;
+}
+
+/* navbar end ------------ */
+
+.gap {
+	height:15vh;
+	min-height:100px;
+}
+/* body elements */
+.content {
+	color:white;
+	font-family: Chosunilbo_myungjo;
+	text-align: center;
+	position: relative;
+}
+
+/* fold container */
+
+#update-time-text {
+	margin-top:80px;
+}
+
+.site-text {
+	margin-bottom: 20px;
+	line-height: 1.5;
+	font-size:16px;
+}
+
+.headline {
+	font-size:32px;
+}
+
+
+.gap-fold {
+	height:20vh;
+	min-height:100px;
+}
+
+.logo-container {
+	display:flex;
+	justify-content: center;
+	padding: 20px;
+}
+
+.logo-container > img {
+	width:auto;
+	height: 50px;
+	margin: 0px 15px;
+}
+
+#action-btns {
+	display:flex;
+	width: 500px;
+	justify-content: space-around;
+	align-items: center;
+	margin:auto;
+	margin-top: 50px;
+}
+
+/* expand container */
+#expand {
+	display: flex;
+	flex-direction: column;
+}
+
+
+#expand-header {
+	padding:20px;
+}
+
+#date-container {
+	line-height: 2.5;
+}
+
+
+.title-sm {
+	font-size: 18px;
+	margin-bottom: 10px;
+}
+
+#date-picker {
+	width: 200px;
+	height:30px;
+	padding: 5px;
+	color: white;
+	text-align: center;
+	font-family: Chosunilbo_myungjo;
+	font-size:15px;
+	background: rgba(255, 255, 255, 0.3);
+	border-bottom: 1px white solid;
+	border:none;
+}
+
+#expand-body {
+	display:none;
+	grid-gap: 10px;
+	grid-template-columns: 70% 30%;
+
+	width:60%;
+	max-width:1200px;
+	max-height:600px;
+	
+	margin:auto;
+	padding: 40px;
+}
+
+#grid-wordcloud {
+	grid-row-start: 1;
+	grid-row-end: 3;
+	background-color: rgb(39, 39, 39);
+}
+
+#grid-bar {
+	background-color: rgb(39, 39, 39);
+	grid-row-start: 1;
+	grid-row-end: 3;
+}
+
+#footer {
+	height: 600px !important;
+}

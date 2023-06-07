@@ -1,0 +1,371 @@
+{% extends 'base.html' %}
+{% block content %}
+<!-- import section -->
+
+<!-- Pageable -->
+<script src="https://unpkg.com/pageable@latest/dist/pageable.min.js"></script>
+<link type="text/css" rel="stylesheet" href="https://unpkg.com/pageable@latest/dist/pageable.min.css">
+
+<!-- my docs -->
+<link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}">
+<link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='css/card.css') }}">
+<link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+
+<!-- <script src="{{ url_for('static', filename='js/index.js') }}"></script> -->
+<!-- <script src="{{ url_for('static', filename='js/card.js') }}"></script> -->
+
+
+<!-- import section end -->
+
+<div id="background" class="fixed">
+	<video id="bg-video" muted autoplay loop>
+		<source src="{{ url_for('static', filename='videos/background.mp4') }}">
+		<strong>Your browser does not support the video tag.</strong>
+	</video>
+</div>
+
+<div id="bg-overlay" class="overlay fixed"></div>
+
+<div>
+	<nav id="navbar" class="fixed">
+		<a href="#">
+			<img id="site-logo" class="nav-item" src="{{ url_for('static', filename='images/logo.png') }}">
+		</a>
+	</nav>
+</div>
+
+
+<div id="wrap">
+	<div class="content" data-anchor="fold">
+		<div class="gap-fold"></div>
+		<div class="card">
+			<div class="card-body col-12" id="drop_area">
+				<div class="col-12">
+					<div class="video-logo">
+						<img class="card-img" src="{{ url_for('static', filename='images/film.png') }}"/>
+					</div>
+				</div>
+				<div class="col-12">
+					<div class="top-area">
+						<h3>Mp4 파일 드래그하기</h3>
+					</div>
+					<div class="middle-area">
+						<h3>또는</h3>
+					</div>
+					<div class="btn-upload">
+						<button id="file-upload">컴퓨터에서 첨부하기</button>
+						<form class="upload" action="/upload" method="POST" enctype="multipart/form-data">
+							{% with messages = get_flashed_messages(with_categories=true) %}
+								{% if messages %}
+									{% for category, message in messages %}
+									<script type="text/javascript">
+										$(document).ready(function() {
+											Swal.fire({
+												text: "{{ message }}",
+												confirmButtonColor: "#000000",
+												icon: "{{ category }}"
+											}).then(function(){
+												pageable.scrollToAnchor("#keyword");
+											})
+										});
+									</script>
+									{% endfor %}
+								{% endif %}
+							{% endwith %}
+							<input type="file" id="video-upload" name="video" style="display: none;" onchange="changeValue(this)"/>
+							<input type="hidden" id="video-file-name" value=""/>
+						</form>
+					</div>
+					<div id="upload_progress"></div>
+					<div id="speed"></div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="content" data-anchor="keyword">
+		<div class="gap"></div>
+		<div id="expand-header">
+			<div id="expand-text" class="site-text">
+				<span id="expand-headline" class="headline">
+					키워드 입력
+				</span><br>
+			</div>
+			<div class="card">
+				<div class="card-body col-12 row height-80">
+					<div class="col-6 display-flex">
+						<div class="col-12 margin-auto">
+							<span id="expand-headline" class="headline-title">
+								* 키워드 입력간 유의사항 *
+							</span>
+							<p>
+								1. 탐지 가능한 종류는 10가지입니다. <br/>
+								   - 성별(남 / 여) <br/>
+								   - 의류 종류 <br/>
+								     1. 상의 <br/>
+									 2. 하의 <br/>
+							</p>
+						</div>
+					</div>
+					<div class="col-6">
+						<div class="col-12 result-cap-title">
+							<input type="text" class="input-keyword" id="input-keyword" placeholder="검색 키워드를 입력하세요.">
+							<button type="button" class ="btn-keyword">생성</button>
+						</div>
+						<div class="col-12 result-cap-content">
+							<table id="key-table" width="100%" border="1">
+								<colgroup>
+									<col width="*" />
+									<col width="10%" />
+								  </colgroup>
+							</table>
+						</div>
+						
+						<!-- <button class="video-convert" onclick="videoConvert()">비디오 변환하기</button> -->
+						<input class="video-id" id="video-id" type="hidden" value="" />
+					</div>
+					
+				</div>
+				<div class="col-12 height-20 display-flex">
+					<div class="margin-auto">
+						<button class="video-convert" onclick="videoConvert()">비디오 변환하기</button>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="content" data-anchor="result">
+		<div class="gap"></div>
+		<div id="expand-header">
+			<div id="expand-text" class="site-text">
+				<span id="expand-headline" class="headline">
+					결과 영상 확인
+				</span><br>
+			</div>
+			<div class="card">
+				<div class="card-body col-12 row">
+					<div class="col-6 display-flex">
+						<div class="col-12 result-video-sec">
+							<video class="result-video" controls>
+								<source src="{{ url_for('static', filename='videos/background.mp4') }}" type="video/mp4">
+							</video>
+							<a href="{{ url_for('static', filename='videos/background.mp4') }} download">download</a>
+						</div>
+					</div>
+					<div class="col-6">
+						<div class="col-12 result-cap-title">
+							<span id="expand-headline" class="headline-title">
+								생성 캡션 확인
+							</span>
+						</div>
+						<div class="col-12 result-cap-content">
+							1. woman walking on the street <br />
+							2. man wear black shirt <br />
+							3. man black shirt running <br />
+						</div>
+					</div>
+					
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+<script>
+	const pageable = new Pageable("#wrap", {
+		animation: 500,
+		events: {
+			mouse: false,
+		}
+	});
+
+	$('#file-upload').click(function(){$('#video-upload').trigger('click');});
+
+	function changeValue(obj){
+		var filename = $('input[id=video-upload]').val().replace(/C:\\fakepath\\/i, '');
+		$('.upload').submit();
+
+		$('#video-file-name').val(filename);
+		alert(filename)
+		$.ajax({
+            url:'/get_video_id',
+            data: {
+				'filename' : filename
+			},
+			type: 'POST',
+			success: function(data){
+				alert('성공');
+				var json = JSON.parse(data);
+				alert(json);
+				alert(json.status);
+				alert(json.video_id);
+				Swal.fire({
+					text: "업로드가 완료되었습니다.",
+					confirmButtonColor: "#000000",
+					icon: "success"
+				}).then(function(){
+					pageable.scrollToAnchor("#keyword");
+					var id = data.video_id;
+					$('#video-id').val(id);
+				})
+			},
+			error: function(request, status, error){
+				alert('ajax 통신 실패')
+				alert(error);
+				alert("code : " + request.status + "\n" + "message : " + request.responseText + "\n" + "error : " + error);
+			}
+        })
+	}
+
+	//----------Drag & Drop--------------
+	// prevent the default behavior of web browser
+	['dragleave', 'drop', 'dragenter', 'dragover'].forEach(function (evt) {
+		document.addEventListener(evt, function (e) {
+			e.preventDefault();
+		}, false);
+	});
+
+	var drop_area = document.getElementById('drop_area');
+	drop_area.addEventListener('drop', function (e) {
+		e.preventDefault();
+		var fileList = e.dataTransfer.files; // the files to be uploaded
+		if (fileList.length == 0) {
+			return false;
+		}
+
+		// we use XMLHttpRequest here instead of fetch, because with the former we can easily implement progress and speed.
+		var xhr = new XMLHttpRequest();
+		// xhr.open('post', '/drag_upload', true); // aussume that the url /upload handles uploading.
+		xhr.open('post', '/drag_upload', true);
+		xhr.onreadystatechange = function () {
+			if (xhr.readyState == 4 && xhr.status == 200) {
+				alert("성공");
+				// uploading is successful
+				Swal.fire({
+					text: "업로드가 완료되었습니다.",
+					confirmButtonColor: "#000000",
+					icon: "success"
+				}).then(function(){
+					pageable.scrollToAnchor("#keyword");
+					var id = xhr.responseText[0];
+					$('#video-id').val(id);
+				})
+			}
+		};
+
+		// show uploading progress
+		var lastTime = Date.now();
+		var lastLoad = 0;
+		xhr.upload.onprogress = function (event) {
+			if (event.lengthComputable) {
+				// update progress
+				var percent = Math.floor(event.loaded / event.total * 100);
+				document.getElementById('upload_progress').textContent = percent + '%';
+
+				// update speed
+				var curTime = Date.now();
+				var curLoad = event.loaded;
+				var speed = ((curLoad - lastLoad) / (curTime - lastTime) / 1024).toFixed(2);
+				document.getElementById('speed').textContent = speed + 'MB/s'
+				lastTime = curTime;
+				lastLoad = curLoad;
+			}
+		};
+
+		// send files to server
+		xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+		var fd = new FormData();
+		for (let file of fileList) {
+			fd.append('files', file);
+		}
+		lastTime = Date.now();
+
+		xhr.send(fd);
+	}, false);
+
+	//----------keyword------------
+	function videoConvert(){
+		var dataArrayToSend = [];
+
+		$("#key-table tr").each(function(){
+			var len = $(this).find("td").length;
+
+			for(var i=0; i<len; i+=2){
+				dataArrayToSend.push($(this).find("td").eq(i).text());
+			}
+		})
+
+		var video_id = $('#video-id').val();
+
+		$.ajax({
+			url:'/keyword',
+			dataType: 'json',
+			data: {
+				video_id : JSON.stringify(video_id),
+				keyword : JSON.stringify(dataArrayToSend)
+			},
+			type: 'POST',
+			success: function(data){
+				alert('성공');
+				
+			},
+			error: function(request, status, error){
+				alert('ajax 통신 실패')
+				alert(error);
+				
+			}
+		})
+	}
+
+	function sendKeyword(){
+        $.ajax({
+            url:'/keyword',
+            contentType : 'application/json',
+            method:'POST',
+            data:JSON.stringify({
+                keyword: $("#input-keyword").val(),
+            }),
+				dataType : 'JSON',
+				contentType : 'application/json',
+				success: function(data){
+					if(data.status == '200') {
+						alert('성공')
+						alert(data.results[0]['object_key'])
+						$("#key-table").append(
+							$("<tr></tr>")
+							.append($("<td></td>").attr("class", "text-center").text(data.results[0]['object_key']))
+							.append($("<td></td>").attr("class", "text-center").append($("<input></input>").attr("id",cnt).attr("type","button").attr("class","del-button").attr("value","삭제")  ))
+						)
+					}
+				},
+				error: function(request, status, error){
+					alert('ajax 통신 실패')
+					alert(error);
+				}
+
+        }).done(function(res){
+            $("#input-keyword").val('');
+            window.location='/#keyword';
+        });
+    }
+
+	var cnt = 0;
+	$(document).on("click", ".btn-keyword", function(){
+		$("#key-table").append(
+			$("<tr></tr>")
+			.append($("<td></td>").attr("class", "text-center").attr("id", cnt).text($("#input-keyword").val()))
+			.append($("<td></td>").attr("class", "text-center").append($("<input></input>").attr("id",this.no).attr("type","button").attr("class","del-button").attr("value","삭제")  ))
+		)
+		$("#input-keyword").val('');
+            window.location='/#keyword';
+		cnt += 1;
+	})
+
+	$(document).on("click",".del-button",function(){
+		console.log(this);
+		$(this).parent().parent().remove();
+	});
+
+	
+</script>
+{% endblock %}

@@ -1,0 +1,158 @@
+@charset "UTF-8";
+
+
+@font-face {
+	font-family: 'score-thin';
+	src: url('/static/fonts/score/SCDream3.otf') format('woff');
+}
+
+@font-face {
+		font-family: 'score';
+		src: url('/static/fonts/score/SCDream4.otf') format('woff');
+}
+
+@font-face {
+		font-family: 'score-bold';
+		src: url('/static/fonts/score/SCDream7.otf') format('woff');
+}
+
+@font-face {
+	font-family: 'score-extra';
+	src: url('/static/fonts/score/SCDream9.otf') format('woff');
+}
+
+
+@font-face {
+	font-family: 'nanum-myungjo';
+	src: url('/static/fonts/nanum/NanumMyeongjo.otf') format('woff');
+}
+
+@font-face {
+	font-family: 'nanum-myungjo-bold';
+	src: url('/static/fonts/nanum/NanumMyeongjoBold.otf') format('woff');
+}
+
+@font-face {
+	font-family: 'nanum-myungjo-extra';
+	src: url('/static/fonts/nanum/NanumMyeongjoExtraBold.otf') format('woff');
+}
+
+
+@font-face {
+		font-family: 'Chosunilbo_myungjo';
+		src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_one@1.0/Chosunilbo_myungjo.woff') format('woff');
+		font-weight: normal;
+		font-style: normal;
+}
+
+@font-face {
+		font-family: 'ChosunKm';
+		src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_20-04@1.0/ChosunKm.woff') format('woff');
+		font-weight: normal;
+		font-style: normal;
+}
+
+/* a tag remove decoration */
+A:link {text-decoration:none;}
+A:visited {text-decoration:none;}
+A:active {text-decoration:none;}
+A:hover {text-decoration:none;}
+/* a tag end */
+
+/* buttons */
+
+.btn-flip {
+	opacity: 1;
+	outline: 0;
+	color: #fff;
+	line-height: 40px;
+	position: relative;
+	text-align: center;
+	letter-spacing: 1px;
+	display: inline-block;
+	text-decoration: none;
+	font-family: score;
+	text-transform: uppercase;
+}
+
+.btn-flip:hover:after {
+	opacity: 1;
+	transform: translateY(0) rotateX(0);
+}
+
+.btn-flip:hover:before {
+	opacity: 0;
+	transform: translateY(50%) rotateX(90deg);
+}
+
+.btn-flip:after {
+	top: 0;
+	left: 0;
+	opacity: 0;
+	width: 100%;
+	color: #434344;
+	display: block;
+	transition: 0.5s;
+	position: absolute;
+	background: #adadaf;
+	content: attr(data-back);
+	transform: translateY(-50%) rotateX(90deg);
+}
+
+.btn-flip:before {
+	top: 0;
+	left: 0;
+	opacity: 1;
+	color: #d6d6d6;
+	display: block;
+	padding: 0 30px;
+	line-height: 40px;
+	transition: 0.5s;
+	position: relative;
+	background: #5f5f5f;
+	content: attr(data-front);
+	transform: translateY(0) rotateX(0);
+}
+
+
+/* text-field */
+
+/* animations */
+.blink-2 {
+	-webkit-animation: blink-2 1.5s infinite both;
+	        animation: blink-2 1.5s infinite both;
+}
+
+@-webkit-keyframes blink-2 {
+	0% {
+	  opacity: 1;
+	}
+	50% {
+	  opacity: 0.2;
+	}
+	100% {
+	  opacity: 1;
+	}
+}
+
+@keyframes blink-2 {
+	0% {
+	  opacity: 1;
+	}
+	50% {
+	  opacity: 0.2;
+	}
+	100% {
+	  opacity: 1;
+	}
+}
+  
+/* datepicker */
+
+.datepicker-style {
+	--dd-text1: #000;
+	--dd-gradient:linear-gradient(45deg, #292929 0%, #555555 100%);
+	--dd-monthBackground: var(--dd-gradient);
+	--dd-confirmButtonBackground: var(--dd-gradient);
+	--dd-selectedBackground: var(--dd-gradient);
+}
