@@ -1,8 +1,6 @@
 from distutils.command.clean import clean
 import pymysql
 import configparser
-import json
-import time
 from itertools import islice
 
 class DBHandler:
@@ -31,7 +29,7 @@ class DBHandler:
 	def get_video_info(self):
 		cursor = self.__conn.cursor(pymysql.cursors.DictCursor)
 		sql = '''
-			SELECT * FROM video_info
+			SELECT * FROM video_info_copy1
 			'''
 
 		cursor.execute(sql)
@@ -42,7 +40,7 @@ class DBHandler:
 	def get_video_id(self, video_name):
 		cursor = self.__conn.cursor(pymysql.cursors.DictCursor)
 		sql = '''
-			SELECT video_id FROM video_keyword
+			SELECT video_id FROM video_list
 			WHERE video_name = %s
 		'''
 
@@ -50,17 +48,43 @@ class DBHandler:
 		sql_rs = cursor.fetchall()
 
 		return sql_rs
+	
+	def get_video_name(self, video_id):
+		cursor = self.__conn.cursor(pymysql.cursors.DictCursor)
+		sql = '''
+			SELECT video_name FROM video_list
+			WHERE video_id = %s
+		'''
+
+		cursor.execute(sql, video_id)
+		sql_rs = cursor.fetchone()
+
+		return sql_rs
 
 	def insert_video_name(self, video_name):
 		cursor = self.__conn.cursor(pymysql.cursors.DictCursor)
 		sql = '''
-			INSERT INTO video_keyword VALUES(%s, %s, %s)
+			INSERT INTO video_list VALUES(%s, %s)
 			'''
 		try:
-			cursor.execute(sql, (None, video_name, None))
+			cursor.execute(sql, (None, video_name))
 		except pymysql.err.DataError:
 			return False
 		self.__conn.commit()
+		return True
+	
+	def insert_video_info(self, frame_id, object_id, x1, y1, x2, y2):
+		cursor = self.__conn.cursor(pymysql.cursors.DictCursor)
+		sql = '''
+			INSERT INTO video_info_copy1(frame_id, object_id, x1, y1, x2, y2) VALUES(%s, %s, %s, %s, %s, %s)
+		'''
+		try:
+			cursor.execute(sql, (frame_id, object_id, x1, y1, x2, y2))
+
+		except pymysql.err.DataError:
+			return False
+		self.__conn.commit()
+		
 		return True
 	
 	def insert_keyword(self, keyword, video_id):
@@ -73,6 +97,88 @@ class DBHandler:
 		except pymysql.err.DataError:
 			return False
 		self.__conn.commit()
+		return True
+	
+	#----------caption-------------
+	def db_to_dataframe(self):
+		cursor = self.__conn.cursor(pymysql.cursors.DictCursor)
+		sql = '''
+			SELECT frame_id, object_id, x1, y1, x2, y2, video_id FROM video_info_copy1
+		'''
+		cursor.execute(sql)
+		sql_rs = cursor.fetchall()
+		cursor.close()
+
+		return sql_rs
+	
+	def savecaption(self, data, captions):
+		cursor = self.__conn.cursor(pymysql.cursors.DictCursor)
+		sql = '''
+			UPDATE video_info_copy1 SET object_cap = %s WHERE object_id = %s
+		'''
+
+		try:
+			for _, row in data.iterrows(): # for문으로 object_id, caption matching 하여 올리기
+				cursor.execute(sql, (captions[row.object_id], int(row.object_id)))
+		except pymysql.err.DataError:
+			return False
+
+		self.__conn.commit()
+		cursor.close()
+
+		return True
+	
+	def get_caption(self, video_id, input_keyword):
+		cursor = self.__conn.cursor(pymysql.cursors.DictCursor)
+		try:
+			# if len(input_keyword) == 1:
+			# 	sql = '''
+			# 			SELECT frame_id, object_id, object_cap FROM video_info_copy1
+			# 			WHERE video_id = %s AND
+			# 			object_cap LIKE CONCAT("%", "%s", "%")
+			# 		'''
+			# 	cursor.execute(sql, (video_id, input_keyword[0]))
+			# else:
+				sql = '''
+						SELECT frame_id, object_id, object_cap FROM video_info_copy1
+						WHERE video_id = %s AND
+						object_cap REGEXP "^'''
+				
+				for keyword in input_keyword:
+					regexp_com_start = "(?=.*"
+					regexp_com_end = ")"
+					keyword_com = regexp_com_start + keyword + regexp_com_end
+
+					sql = sql + keyword_com
+
+				sql = sql + '.*$"'
+
+				print("sql: ", sql)
+					
+				cursor.execute(sql, video_id)
+
+		except pymysql.err.DataError:
+			return False
+
+		sql_rs = cursor.fetchall()
+		cursor.close()
+		
+		return sql_rs
+	
+	#-------truncate-------
+	def truncate(self):
+		cursor = self.__conn.cursor(pymysql.cursors.DictCursor)
+		sql = '''
+			truncate table video_info_copy1, keyword_list, video_list
+		'''
+
+		try:
+			cursor.execute(sql)
+		except pymysql.err.DataError:
+			return False
+		
+		self.__conn.commit()
+		cursor.close
 		return True
 
 	def close(self):

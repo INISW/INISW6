@@ -1,150 +1,182 @@
 
-$(document).ready(function() {
+// const pageable = new Pageable("#wrap", {
+// 	animation: 500,
+// 	events: {
+// 		mouse: false,
+// 	}
+// });
 
-	var today = get_fmtted_date(new Date());
+// $('#file-upload').click(function(){$('#video-upload').trigger('click');});
+
+// ['dragleave', 'drop', 'dragenter', 'dragover'].forEach(function (evt) {
+// 	document.addEventListener(evt, function (e) {
+// 		e.preventDefault();
+// 	}, false);
+// });
+
+// var drop_area = document.getElementById('drop_area');
+// drop_area.addEventListener('drop', function (e) {
+// 	e.preventDefault();
+// 	var fileList = e.dataTransfer.files; // the files to be uploaded
+// 	if (fileList.length == 0) {
+// 		return false;
+// 	}
+
+// 	// we use XMLHttpRequest here instead of fetch, because with the former we can easily implement progress and speed.
+// 	var xhr = new XMLHttpRequest();
+// 	// xhr.open('post', '/drag_upload', true); // aussume that the url /upload handles uploading.
+// 	xhr.open('post', '/drag_upload', true);
+// 	xhr.onreadystatechange = function () {
+// 		if (xhr.readyState == 4 && xhr.status == 200) {
+// 			alert("성공");
+// 			// uploading is successful
+// 			Swal.fire({
+// 				text: "업로드가 완료되었습니다.",
+// 				confirmButtonColor: "#000000",
+// 				icon: "success"
+// 			}).then(function(){
+// 				pageable.scrollToAnchor("#keyword");
+// 				var id = xhr.responseText[0];
+// 				$('#video-id').val(id);
+// 			})
+// 		}
+// 	};
+
+// 	// show uploading progress
+// 	var lastTime = Date.now();
+// 	var lastLoad = 0;
+// 	xhr.upload.onprogress = function (event) {
+// 		if (event.lengthComputable) {
+// 			// update progress
+// 			var percent = Math.floor(event.loaded / event.total * 100);
+// 			document.getElementById('upload_progress').textContent = percent + '%';
+
+// 			// update speed
+// 			var curTime = Date.now();
+// 			var curLoad = event.loaded;
+// 			var speed = ((curLoad - lastLoad) / (curTime - lastTime) / 1024).toFixed(2);
+// 			document.getElementById('speed').textContent = speed + 'MB/s'
+// 			lastTime = curTime;
+// 			lastLoad = curLoad;
+// 		}
+// 	};
+
+// 	// send files to server
+// 	xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+// 	var fd = new FormData();
+// 	for (let file of fileList) {
+// 		fd.append('files', file);
+// 	}
+// 	lastTime = Date.now();
+
+// 	xhr.send(fd);
+// }, false);
 	
-	new dateDropper({
-		selector: '#date-picker',
-		minDate: "2022-01-10",
-		lang: 'ko',
-		maxDate: today,
-		expandedOnly: true,
-		onChange: function (res) {
-			selected_day = res.output.y + "-" + res.output.mm + "-" + res.output.dd;
-		}
-	});
-
-	selected_day = today;
-
-	$('#date-picker').val(today);
-	
-	// navbar 색상 변경 스크립트
-	$('.site-link').hover(
-		// 마우스 올라왔을때
-		function() {
-			$('#navbar').css('background-color', 'white')
-			// navbar 링크 색상 변경
-			$('.site-link').children().css('color', 'black')
-			// 로고 이미지 변경
-			$('#site-logo').attr('src', '/static/images/logo-black.png')
-		},
-		// 마우스 떠났을때
-		function() {
-			$('#navbar').css('background-color', '')
-			// navbar 링크 색상 변경
-			$('.site-link').children().css('color', 'white')
-			// 로고 이미지 변경
-			$('#site-logo').attr('src', '/static/images/logo.png')
-		}
-	)
-
-    $('.topic-card').on('click', function() {
-        $('.topic-card').addClass('topic-fold')
-        $('.topic-card').removeClass('topic-selected')
-        $(this).addClass('topic-selected')
-		var topic = $(this).attr("topic");
-        fold_card()
-		get_crawling_data(topic)
-    })
-	
-	// 카운트다운
-	refresh_data();
-
-	new Pageable("#wrap", {
-		animation: 500,
-		pip: true,
-	});
-})
 
 
-function get_fmtted_date(dt) {
-	return dt.getFullYear() + '-' + (dt.getMonth()+1).toString().padStart(2, '0') + '-'+ (dt.getDate()).toString().padStart(2, '0');
-}
+// function changeValue(obj){
+// 	var filename = $('input[id=video-upload]').val().replace(/C:\\fakepath\\/i, '');
+// 	$('.upload').submit();
+
+// 	$('#video-file-name').val(filename);
+// 	alert(filename)
+// 	$.ajax({
+// 		url:'/get_video_id',
+// 		data: {
+// 			'filename' : filename
+// 		},
+// 		type: 'POST',
+// 		success: function(data){
+// 			alert('성공');
+// 			var json = JSON.parse(data);
+// 			alert(json);
+// 			alert(json.status);
+// 			alert(json.video_id);
+// 			Swal.fire({
+// 				text: "업로드가 완료되었습니다.",
+// 				confirmButtonColor: "#000000",
+// 				icon: "success"
+// 			}).then(function(){
+// 				pageable.scrollToAnchor("#keyword");
+// 				var id = data.video_id;
+// 				$('#video-id').val(id);
+// 			})
+// 		},
+// 		error: function(request, status, error){
+// 			alert('ajax 통신 실패')
+// 			alert(error);
+// 			alert("code : " + request.status + "\n" + "message : " + request.responseText + "\n" + "error : " + error);
+// 		}
+// 	})
+// }
+
+// function sendKeyword(){
+// 	$.ajax({
+// 		url:'/keyword',
+// 		contentType : 'application/json',
+// 		method:'POST',
+// 		data:JSON.stringify({
+// 			keyword: $("#input-keyword").val(),
+// 		}),
+// 			dataType : 'JSON',
+// 			contentType : 'application/json',
+// 			success: function(data){
+// 				if(data.status == '200') {
+// 					alert('성공')
+// 					alert(data.results[0]['object_key'])
+// 					$("#key-table").append(
+// 						$("<tr></tr>")
+// 						.append($("<td></td>").attr("class", "text-center").text(data.results[0]['object_key']))
+// 						.append($("<td></td>").attr("class", "text-center").append($("<input></input>").attr("id",cnt).attr("type","button").attr("class","del-button").attr("value","삭제")  ))
+// 					)
+// 				}
+// 			},
+// 			error: function(request, status, error){
+// 				alert('ajax 통신 실패')
+// 				alert(error);
+// 			}
+
+// 	}).done(function(res){
+// 		$("#input-keyword").val('');
+// 		window.location='/#keyword';
+// 	});
+// }
+
+// //----------keyword------------
+// function videoConvert(){
+// 	var dataArrayToSend = [];
+
+// 	$("#key-table tr").each(function(){
+// 		var len = $(this).find("td").length;
+
+// 		for(var i=0; i<len; i+=2){
+// 			dataArrayToSend.push($(this).find("td").eq(i).text());
+// 		}
+// 	})
+
+// 	var video_id = $('#video-id').val();
+
+// 	$.ajax({
+// 		url:'/keyword',
+// 		dataType: 'json',
+// 		data: {
+// 			video_id : JSON.stringify(video_id),
+// 			keyword : JSON.stringify(dataArrayToSend)
+// 		},
+// 		type: 'POST',
+// 		success: function(data){
+// 			alert('성공');
+			
+// 		},
+// 		error: function(request, status, error){
+// 			alert('ajax 통신 실패')
+// 			alert(error);
+			
+// 		}
+// 	})
+// }
+
+// //----------Drag & Drop--------------
+// // prevent the default behavior of web browser
 
 
-function get_crawling_data(type) {
-	$('#grid-wordcloud').html('')
-	$('#grid-bar').html('')
-	$.ajax({
-		type: 'POST',
-		url: url_get_data,
-		data: JSON.stringify({
-		'date':selected_day,
-		'type':type
-	}),
-		dataType : 'JSON',
-		contentType: "application/json",
-		success: function(data){
-			if(data.status == '200') {
-				show_tagcloud(data.tag)
-				show_barchart(data.bar)
-			} else{
-				alert('해당 날자에 데이터가 없습니다.');
-			}
-		},
-		error: function(request, status, error){
-			alert('ajax 통신 실패')
-			alert(error);
-		}
-	})
-}
-
-
-function show_tagcloud(data) {
-	// chart
-	var chart = anychart.tagCloud(data);
-	chart.angles([0]);
-	chart.container("grid-wordcloud");
-
-	// create and configure a color scale.
-	var customColorScale = anychart.scales.linearColor();
-	chart.hover({
-		fill: '#ffffff'
-	});
-
-	customColorScale.colors(["#7c7c7c", "#FFFFFF"]);
-	chart.selected({
-		fill: '#ffffff',
-		fontWeight: 'bold'
-	});
-	
-	// set the color scale as the color scale of the chart
-	chart.colorScale(customColorScale);
-	chart.background().fill("rgb(56, 56, 56)");
-	chart.fontFamily('score-bold');
-	
-	// add and configure a color range
-	chart.colorRange().enabled(true);
-	chart.colorRange().length("90%");
-	chart.draw();
-}
-
-
-function show_barchart(data) {
-	var chart = anychart.bar();
-	var series = chart.bar(data);
-
-	chart.container("grid-bar");
-	chart.background().fill("rgb(56, 56, 56)");
-
-	series.normal().fill("#d4d4d4");
-	series.normal().stroke(null);
-
-	series.selected().fill('#ffffff');
-
-	series.labels().fontFamily("score");
-	series.labels().fontColor("#d4d4d4");
-	series.labels(true);
-	
-	chart.title('상위 15개 검색단어');
-	chart.title().fontFamily('score-bold');
-	chart.title().fontColor('#d4d4d4');
-	chart.title().fontSize(18);
-
-	chart.xAxis().labels().fontFamily('score');
-	chart.xAxis().labels().fontColor('#d4d4d4');
-
-	chart.yAxis().labels().fontFamily('score');
-	chart.yAxis().labels().fontColor('#d4d4d4');
-	chart.draw();
-}
