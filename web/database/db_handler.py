@@ -73,13 +73,13 @@ class DBHandler:
 		self.__conn.commit()
 		return True
 	
-	def insert_video_info(self, frame_id, object_id, x1, y1, x2, y2):
+	def insert_video_info(self, frame_id, object_id, x1, y1, x2, y2, video_id):
 		cursor = self.__conn.cursor(pymysql.cursors.DictCursor)
 		sql = '''
-			INSERT INTO video_info_copy1(frame_id, object_id, x1, y1, x2, y2) VALUES(%s, %s, %s, %s, %s, %s)
+			INSERT INTO video_info_copy1(frame_id, object_id, x1, y1, x2, y2, video_id) VALUES(%s, %s, %s, %s, %s, %s, %s)
 		'''
 		try:
-			cursor.execute(sql, (frame_id, object_id, x1, y1, x2, y2))
+			cursor.execute(sql, (frame_id, object_id, x1, y1, x2, y2, video_id))
 
 		except pymysql.err.DataError:
 			return False
@@ -117,9 +117,12 @@ class DBHandler:
 			UPDATE video_info_copy1 SET object_cap = %s WHERE object_id = %s
 		'''
 
+		print("data.iterrows: ", data.iterrows())
+		print("captions: ", captions)
+
 		try:
-			for _, row in data.iterrows(): # for문으로 object_id, caption matching 하여 올리기
-				cursor.execute(sql, (captions[row.object_id], int(row.object_id)))
+			for index, row in data.iterrows(): # for문으로 object_id, caption matching 하여 올리기
+				cursor.execute(sql, (captions[index], int(row.object_id)))
 		except pymysql.err.DataError:
 			return False
 
