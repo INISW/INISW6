@@ -8,10 +8,7 @@
 
 <!-- my docs -->
 <link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}">
-<link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='css/card.css') }}">
 <link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
-
-<script src="{{ url_for('static', filename='js/index.js') }}"></script>
 
 <link rel="stylesheet" href="{{ url_for('static', filename='css/video-js.min.css') }}"/>
 <link rel="stylesheet" href="{{ url_for('static', filename='css/videojs.markers.min.css') }}"/>
@@ -82,28 +79,31 @@
 				<div class="card-body col-12 row height-80">
 					<div class="col-6 display-flex">
 						<div class="col-12 margin-auto">
-							<span id="expand-headline" class="headline-title">
-								* 키워드 입력간 유의사항 *
-							</span>
-							<span>
-								
-							</span>
+							<div class="col-12 result-cap-title">
+								<span id="expand-headline" class="headline-title">
+									* 키워드 입력간 유의사항 *
+								</span>
+							</div>
+							
+							<div class="keyword-info">
+								<div class="keyword-exp">
+									<span>* 검색 키워드 입력</span><br/>
+									<span>&nbsp · 사람을 묘사하는 단어를 입력해주세요.</span><br/>
+									<span>&nbsp&nbsp&nbsp&nbsp (ex: man, woman, pants, sleeve ...)</span><br/>
+									<span>&nbsp · 색상을 키워드로 사용할 수 있습니다.</span><br/>
+									<span>&nbsp&nbsp&nbsp&nbsp (ex: black, white, red ...)</span><br/>
+									<span>&nbsp · 모든 사람에 대한 추적</span><br/>
+									<span>&nbsp&nbsp&nbsp&nbsp 키워드 입력이 없으면 모든 사람을 추적합니다.</span><br/>
+								</div>
+							</div>
 						</div>
 					</div>
 					<div class="col-6">
 						<div class="col-12 result-cap-title">
 							<input type="text" class="input-keyword" id="input-keyword" placeholder="검색 키워드를 입력하세요.">
-							<button type="button" class ="btn-keyword">생성</button>
+							<button type="button" class ="btn-keyword enter-key">생성</button>
 						</div>
-						<div class="col-12 result-cap-content">
-							<div class="margin-auto">
-								<table class="border-none" id="key-table" width="100%">
-									<colgroup>
-										<col width="70%" />
-										<col width="15%" />
-									  </colgroup>
-								</table>
-							</div>
+						<div class="col-12 result-cap-content" id="key-sec">
 						</div>
 						<input class="video-id" id="video-id" type="hidden" value="" />
 					</div>
@@ -148,9 +148,9 @@
 				</span><br>
 			</div>
 			<div class="card">
-				<div class="card-body col-12 row">
+				<div class="card-body col-12 row height-85">
 					<div class="col-6 display-flex">
-						<div class="col-12 result-video-sec" id="resultVideo">
+						<div class="result-video-sec" id="resultVideo">
 							<video 
 								id="example_video_1" 
 								class="video-js vjs-default-skin"
@@ -160,39 +160,26 @@
 								data-setup='{"width": 640, "height": 360}'
 								src="">
 							</video>
-
-							<a id="example_video_download" href="" download>download</a>
 						</div>
 					</div>
 					<div class="col-6">
 						<div class="col-12 result-cap-title">
-							<span id="expand-headline" class="headline-title">
-								생성 캡션 확인
+							<span class="headline-title" id="expand-headline">
+								생성 캡션 미리보기
 							</span>
 						</div>
-						<div class="col-12 result-cap-content">
-							<div class="row">
-								<div>[00:27]</div>
-								<div>id : 1</div>
-								<div>cap : man is walking on the street</div>
-							</div>
-							<div class="row">
-								<div>[00:27]</div>
-								<div>id : 1</div>
-								<div>cap : man is walking on the street</div>
-							</div>
-							<div class="row">
-								<div>[00:27]</div>
-								<div>id : 1</div>
-								<div>cap : man is walking on the street</div>
-							</div>
-							<div class="row">
-								<div>[00:27]</div>
-								<div>id : 1</div>
-								<div>cap : man is walking on the street</div>
+						<div class="display-flex">
+							<div class="margin-auto">
+								<div class="col-10 result-cap-content margin-auto" id="result-cap-content">
+								</div>	
 							</div>
 						</div>
 					</div>
+				</div>
+				<div class="col-12 display-flex height-15">
+					<a class="example-video-download margin-auto" onclick="downloadFile();" download>다 운 로 드</a>
+					<a class="caption-file display-none" id="caption-file" href="" download></a>
+					<a class="example-video-download display-none" id="example_video_download" href="" download></a>
 				</div>
 			</div>
 		</div>
@@ -218,6 +205,7 @@
 		}, false);
 	});
 
+
 	var drop_area = document.getElementById('drop_area');
 	drop_area.addEventListener('drop', function (e) {
 		e.preventDefault();
@@ -232,16 +220,27 @@
 		xhr.open('post', '/drag_upload', true);
 		xhr.onreadystatechange = function () {
 			if (xhr.readyState == 4 && xhr.status == 200) {
-				// uploading is successful
-				Swal.fire({
-					text: "업로드가 완료되었습니다.",
-					confirmButtonColor: "#000000",
-					icon: "success"
-				}).then(function(){
-					pageable.scrollToAnchor("#keyword");
-					var id = xhr.responseText[0];
-					$('#video-id').val(id);
-				})
+				var result = JSON.parse(xhr.response);
+
+				if(result['status'] == 'error_video'){
+					Swal.fire({
+						text: result['message'],
+						confirmButtonColor: "#000000",
+						icon: "error"
+					}).then(function(){
+						window.location.replace("/");
+					})
+				} else {
+					Swal.fire({
+						text: "업로드가 완료되었습니다.",
+						confirmButtonColor: "#000000",
+						icon: "success"
+					}).then(function(){
+						pageable.scrollToAnchor("#keyword");
+						var id = xhr.responseText[0];
+						$('#video-id').val(id);
+					})
+				}
 			}
 		};
 
@@ -282,7 +281,6 @@
 		var form = $('.upload')[0];
 		var formData = new FormData(form);
 
-		alert(filename);
 		$('#video-file-name').val(filename);
 		$.ajax({
 			url: '/upload',
@@ -292,26 +290,61 @@
 			processData: false,
 
 			success: function(res){
-				alert('성공 new ajax');
-				var id = res[0];
-				$('#video-id').val(id);
-				alert(res);
-				alert(res[0]);
-				Swal.fire({
-					text: "업로드가 완료되었습니다.",
-					confirmButtonColor: "#000000",
-					icon: "success"
-				}).then(function(){
-					pageable.scrollToAnchor("#keyword");
-				})
+				var result = JSON.parse(res);
+
+				if (result['status'] == 'error_video'){
+					Swal.fire({
+						text: result['message'],
+						confirmButtonColor: "#000000",
+						icon: "error"
+					}).then(function(){
+						window.location.replace("/");
+					})
+				} else {
+					var id = res[0];
+					$('#video-id').val(id);
+					Swal.fire({
+						text: "업로드가 완료되었습니다.",
+						confirmButtonColor: "#000000",
+						icon: "success"
+					}).then(function(){
+						pageable.scrollToAnchor("#keyword");
+					})
+				}
 			},
 			error: function(request, status, error){
-				alert('ajax 통신 실패')
-				alert(error);
-				alert("code : " + request.status + "\n" + "message : " + request.responseText + "\n" + "error : " + error);
+				Swal.fire({
+					text: "다시 시도해주세요.",
+					confirmButtonColor: "#000000",
+					icon: "error"
+				}).then(function(){
+					window.location.replace("/");
+				})
 			}
 		})
 	}	
+
+	var cnt = 0;
+	$(document).on("click", ".enter-key", function(){
+		$("#key-sec").append(
+			$("<div></div>").attr("class", "col-12 result-cap-title list-keyword")
+			.append(
+				$("<input></input>").attr("type", "text").attr("class", "input-keyword input-keyword-re").attr("id", cnt).attr("value", $("#input-keyword").val()).attr("readonly", "readonly")
+			)
+			.append(
+				$("<button></button>").attr("type", "button").attr("class", "btn-keyword del-button").attr("id",this.no).text("삭제")
+			)
+		)
+		$("#input-keyword").val('');
+            window.location='/#keyword';
+		cnt += 1;
+	})
+
+	$(document).on("click",".del-button",function(){
+		// console.log(this);
+		// console.log($(this).parent());
+		$(this).parent().remove();
+	});
 
 	//----------keyword & convert------------
 	var video_name;
@@ -321,20 +354,21 @@
 			confirmButtonColor: "#000000",
 			icon: "question"
 		}).then((result) => {
+			$('.loading').show();
+			$('.keyword-sec').hide();
 			var dataArrayToSend = [];
 
-			$("#key-table tr").each(function(){
-				var len = $(this).find("td").length;
+			$(".input-keyword-re").each(function(){
+				// var len = $(this).find("td").length;
 
-				for(var i=0; i<len; i+=2){
-					dataArrayToSend.push($(this).find("td").eq(i).text());
-				}
+				// for(var i=0; i<len; i+=2){
+				// 	dataArrayToSend.push($(this).find("td").eq(i).text());
+				// }
+				var value = $(this).val();
+				dataArrayToSend.push(value);
 			})
 
 			let video_id = $('#video-id').val();
-
-			$('.loading').show();
-			$('.keyword-sec').hide();
 
 			$.ajax({
 				url:'/keyword',
@@ -345,68 +379,101 @@
 				},
 				type: 'POST',
 				success: function(data){
-					console.log(data['output_video']);
-					alert(data['output_video']);
+					// console.log(data['output_video']);
+					// console.log(data['final_data']);
 					
-					Swal.fire({
-						text: "변환이 완료되었습니다.",
-						confirmButtonColor: "#000000",
-						icon: "success"
-					}).then(function(){
-						pageable.scrollToAnchor("#result");
-					})
+					if (data['status'] == "error_video") {
+						Swal.fire({
+							text: data['message'],
+							confirmButtonColor: "#000000",
+							icon: "error"
+						}).then(function(){
+							window.location.replace("/");
+						})
+					} else {
+						Swal.fire({
+							text: "변환이 완료되었습니다.",
+							confirmButtonColor: "#000000",
+							icon: "success"
+						}).then(function(){
+							pageable.scrollToAnchor("#result");
+						})
 
-					$('.loading').hide();
-					$('.keyword-sec').show();
-					
-					video_name = data['output_video']
+						$('.loading').hide();
+						$('.keyword-sec').show();
+						
+						video_name = data['output_video']
+						caption_name = video_name.slice(0, -4).concat('.txt')
 
-					var video = videojs('example_video_1');
-					var video_path1 = '../static/outputs/'
-					var path = video_path1.concat(video_name)
-					$('#example_video_1 video').attr('src', path)
-					$('#example_video_1').load()
-					alert(path)
-					
-					$('#example_video_download').attr('href', path)
+						var video = videojs('example_video_1');
+						var video_path1 = '../static/outputs/'
+						var caption_path1 = '../static/outputs_caption/'
 
-					//load markers
-					video.markers({
-					markers: [
-						{time: 9, text: "this"},
-						{time: 15, text: "is"},
-						{time: 25, text: "so"},
-						{time: 37, text: "cool"},
-						{time: 100, text: "cool"},
-					]
-					});
+						var path = video_path1.concat(video_name)
+						var caption_path = caption_path1.concat(caption_name)
+
+						$('#example_video_1 video').attr('src', path)
+						$('#example_video_1').load()
+						
+						$('#example_video_download').attr('href', path)
+						$('#caption-file').attr('href', caption_path)
+						
+						
+						if (data['final_data'].length > 0) {
+							var arrayTime = [];
+							for (var i = 0; i < data['final_data'].length; i++) {
+								var final_time;
+								var final_text;
+								if(data['final_data'][i]['min'] > 0) {
+									final_time = data['final_data'][i]['min'] * 60 + data['final_data'][i]['sec'];
+								} else {
+									final_time = data['final_data'][i]['sec'];
+								}
+								final_text = data['final_data'][i]['object_id'];
+								arrayTime.push({time: final_time, text: final_text});
+							}
+
+							video.markers({
+								markers: arrayTime
+							});
+
+							for (var i = 0; i < 5; i++) {
+								$("#result-cap-content").append(
+									$("<div></div>").attr("class", "mb-15 result-cap").append(
+										$("<div></div>").attr("class", "row")
+											.append($("<div></div>").text("[ " + data['final_data'][i]['min'] + "분 " + data['final_data'][i]['sec'] + "초" + " ]"))
+											.append($("<div></div>").attr("class", "mrl-15").text("object id : " + data['final_data'][i]['object_id']))
+									).append(
+										$("<div></div>").attr("class", "row")
+											.append($("<div></div>")
+											.attr("class", "text-start")
+											.text("caption : " + data['final_data'][i]['object_cap']))
+									)	
+								)
+							}
+						} else {
+							$("#result-cap-content").append(
+								$("<div></div>").attr("class", "row")
+								.append($("<div></div>").text("해당 키워드로 검색된 객체가 없습니다."))
+							)
+						}
+					}
 				},
-				error: function(request, status, error){
-					alert('ajax 통신 실패')
-					alert(error);
+				error: function(request, status, error, data){
+					console.log('ajax 통신 실패')
+					console.log(error);
 				},
 			})
 		})
 			
 	}
 	
-
-	var cnt = 0;
-	$(document).on("click", ".btn-keyword", function(){
-		$("#key-table").append(
-			$("<tr></tr>")
-			.append($("<td></td>").attr("class", "text-center").attr("id", cnt).text($("#input-keyword").val()))
-			.append($("<td></td>").attr("class", "text-center").append($("<input></input>").attr("id",this.no).attr("type","button").attr("class","del-button btn-del").attr("value","삭제")  ))
-		)
-		$("#input-keyword").val('');
-            window.location='/#keyword';
-		cnt += 1;
-	})
-
-	$(document).on("click",".del-button",function(){
-		console.log(this);
-		$(this).parent().parent().remove();
-	});
+	function downloadFile() {
+		var link1 = document.getElementById('example_video_download');
+		var link2 = document.getElementById('caption-file');
+		link1.click();
+		link2.click();
+	}
 	
 </script>
 {% endblock %}

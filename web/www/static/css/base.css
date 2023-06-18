@@ -1,55 +1,8 @@
 @charset "UTF-8";
 
-
 @font-face {
-	font-family: 'score-thin';
-	src: url('/static/fonts/score/SCDream3.otf') format('woff');
-}
-
-@font-face {
-		font-family: 'score';
-		src: url('/static/fonts/score/SCDream4.otf') format('woff');
-}
-
-@font-face {
-		font-family: 'score-bold';
-		src: url('/static/fonts/score/SCDream7.otf') format('woff');
-}
-
-@font-face {
-	font-family: 'score-extra';
-	src: url('/static/fonts/score/SCDream9.otf') format('woff');
-}
-
-
-@font-face {
-	font-family: 'nanum-myungjo';
-	src: url('/static/fonts/nanum/NanumMyeongjo.otf') format('woff');
-}
-
-@font-face {
-	font-family: 'nanum-myungjo-bold';
-	src: url('/static/fonts/nanum/NanumMyeongjoBold.otf') format('woff');
-}
-
-@font-face {
-	font-family: 'nanum-myungjo-extra';
-	src: url('/static/fonts/nanum/NanumMyeongjoExtraBold.otf') format('woff');
-}
-
-
-@font-face {
-		font-family: 'Chosunilbo_myungjo';
-		src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_one@1.0/Chosunilbo_myungjo.woff') format('woff');
-		font-weight: normal;
-		font-style: normal;
-}
-
-@font-face {
-		font-family: 'ChosunKm';
-		src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_20-04@1.0/ChosunKm.woff') format('woff');
-		font-weight: normal;
-		font-style: normal;
+	font-family: 'nanum-square-bold';
+	src: url('/static/fonts/nanum/NanumSquareRoundOTFB.otf') format('woff');
 }
 
 /* a tag remove decoration */
@@ -145,14 +98,4 @@ A:hover {text-decoration:none;}
 	100% {
 	  opacity: 1;
 	}
-}
-  
-/* datepicker */
-
-.datepicker-style {
-	--dd-text1: #000;
-	--dd-gradient:linear-gradient(45deg, #292929 0%, #555555 100%);
-	--dd-monthBackground: var(--dd-gradient);
-	--dd-confirmButtonBackground: var(--dd-gradient);
-	--dd-selectedBackground: var(--dd-gradient);
 }

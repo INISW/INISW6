@@ -1,0 +1,16 @@
+time		Object_id		Object_cap
+
+[0:30]		1		a man who is fully grown is dressed in a short - sleeved black shirt, long black trousers, and is carrying an umbrella.
+
+[1:55]		8		a female senior is wearing black short sleeve top, black short pants and a bag.
+
+[1:59]		9		a grown woman is sporting a black top with long sleeves and a black skirt.
+
+[2:32]		11		a woman who is fully grown is dressed in a black top with short sleeves, black shorts, and carrying a bag.
+
+[2:33]		14		a senior gentleman is sporting a brown short - sleeved shirt and black trousers.
+
+[2:58]		16		a man in his senior years is dressed in a blue shirt with short sleeves and black pants that extend to his ankles.
+
+[2:59]		17		a female teenager is wearing black long sleeve top, black long pants and a bag.
+

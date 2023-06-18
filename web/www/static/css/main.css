@@ -27,10 +27,14 @@ CSS option
 .text-center{text-align: center;}
 .text-right{text-align: right;}
 .text-left{text-align: left;}
+.text-start{text-align: start;}
 
 .margin-auto{margin: auto;}
+.mb-15{margin-bottom: 15px;}
+.mrl-15{margin: 0 15px;}
 
 .height-80{height: 80% !important;}
+.height-85{height: 85% !important;}
 .height-20{height: 20% !important;}
 
 .border-none{border: none !important;}
@@ -72,8 +76,24 @@ main
 /******************
 keyword section
 *******************/
+.keyword-info{
+    color: black;
+    width: 80%;
+    margin: 4rem auto 0 auto;
+}
+
+.keyword-exp{
+    font-size: 1.2rem;
+    margin: 2rem 0;
+    padding: 4rem;
+    background: #0f2b46;
+    border-radius: 10px;
+    text-align: start;
+    line-height: 2;
+    color: white;
+}
 .input-keyword{
-    width: 70%;
+    width: 65%;
     height: 35px;
     font-size: 15px;
     border: 0;
@@ -83,8 +103,17 @@ keyword section
     background-color: rgb(233, 233, 233);
 }
 
-th, td {
-    padding: 5px 0;
+.input-keyword-re{
+    text-align: center;
+    background-color: unset;
+}
+input.input-keyword-re::placeholder {
+    color: black;
+    font-size: 1.2rem;
+}
+
+.list-keyword{
+    margin: 1rem auto !important;
 }
 
 .btn-keyword, .btn-del {
@@ -123,8 +152,8 @@ th, td {
 }
 .spinner-border{
     display:inline-block;
-    width:2rem;
-    height:2rem;
+    width:3rem;
+    height:3rem;
     vertical-align:text-bottom;
     border:.25em solid currentColor;
     border-right-color:transparent;
@@ -156,7 +185,7 @@ th, td {
 
 .load-text-sec{
     font-weight: 700;
-    font-size: 1.2rem;
+    font-size: 1.7rem;
     margin: 2rem;
 }
 
@@ -168,10 +197,20 @@ result section
     width: 100%;
 }
 
-.result-cap-title { margin: 40px auto; }
-.result-cap-content { margin: 0 25px; }
+.result-cap-title { margin: 2.7rem auto; }
+.result-cap { font-weight: 700; color: black; }
 .headline-title { 
-    font-size: 1.5rem;
+    font-size: 1.7rem;
     font-weight: 700;
     color: black;
+}
+
+.example-video-download {
+    padding: 15px 30px;
+    font-size: 1.2rem;
+    font-weight: 700;
+    text-align: center;
+    background: #0f2b46;
+    color: #d9d9d9;
+    border-radius: 10px;
 }

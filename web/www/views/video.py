@@ -1,24 +1,12 @@
-from flask import Blueprint, url_for, render_template, request, redirect, flash
+from flask import Blueprint
 from database.db_handler import DBHandler
-import datetime as dt
-import json
-import os
-import cv2
-from werkzeug.utils import secure_filename
-import os.path as osp
-import tempfile
-from . import caption
-
-import mmcv
-
-from mmtrack.apis import inference_mot, init_model
-
-from absl import app, flags, logging
+import json, os, cv2, time
+import pandas as pd
+from absl import flags
 from absl.flags import FLAGS
 import os
 # comment out below line to enable tensorflow logging outputs
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
-import time
 import tensorflow as tf
 physical_devices = tf.config.experimental.list_physical_devices('GPU')
 if len(physical_devices) > 0:
@@ -28,15 +16,13 @@ if len(physical_devices) > 0:
 import sys
 sys.path.append("C:\\Users\\Sihyun\\Desktop\\INISW\\project\\sihyun_track_test\\yolov4-deepsort-master")
 
-from absl import app, flags, logging
-from absl.flags import FLAGS
 import core.utils as utils
 from core.yolov4 import filter_boxes
 from tensorflow.python.saved_model import tag_constants
 from core.config import cfg
 from PIL import Image
-import cv2
 import numpy as np
+import tensorflow.keras as keras
 import matplotlib.pyplot as plt
 from tensorflow.compat.v1 import ConfigProto
 from tensorflow.compat.v1 import InteractiveSession
@@ -44,25 +30,14 @@ from deep_sort import preprocessing, nn_matching
 from deep_sort.detection import Detection
 from deep_sort.tracker import Tracker
 from tools import generate_detections as gdet
-flags.DEFINE_string('framework', 'tf', '(tf, tflite, trt')
-flags.DEFINE_string('weights', './checkpoints/yolov4-416',
-                    'path to weights file')
-flags.DEFINE_integer('size', 416, 'resize images to')
-flags.DEFINE_boolean('tiny', False, 'yolo or yolo-tiny')
-flags.DEFINE_string('model', 'yolov4', 'yolov3 or yolov4')
-
-flags.DEFINE_string('output_format', 'XVID', 'codec used in VideoWriter when saving video to file')
-flags.DEFINE_float('iou', 0.45, 'iou threshold')
-flags.DEFINE_float('score', 0.50, 'score threshold')
-flags.DEFINE_boolean('dont_show', False, 'dont show video output')
-flags.DEFINE_boolean('info', False, 'show detailed info of tracked objects')
-flags.DEFINE_boolean('count', False, 'count objects being tracked on screen')
 
 video = Blueprint("video", __name__)
 
 @video.route('/video_tracking', methods=['POST', 'GET'])
-def video_tracking(video_id, video_name):
-
+def video_tracking(video_id, video_name, input_keyword, input_type):
+    for name in list(flags.FLAGS):
+        delattr(flags.FLAGS, name)
+    db_handler = DBHandler()
     video_id = int(video_id)
     video_name = video_name['video_name']
     output_video_name = str(video_name[:(len(video_name)-4)])+'_output.mp4'
@@ -70,20 +45,29 @@ def video_tracking(video_id, video_name):
     print("-" * 30)
     print("video_id: ", video_id)
     print("video_name: ", video_name)
+    print("input_type: ", input_type)
     print("-" * 30)
 
-    # config = 'C:\\Users\\Sihyun\\Desktop\\INISW\\project\\sihyun_track\\mmtracking\\configs\\mot\\deepsort\\deepsort_faster-rcnn_fpn_4e_mot17-private-half.py'
-    # video_input = os.path.join('C:\\Users\\Sihyun\\Desktop\\INISW\\project\\INISW_proj\\web\\www\\static\\videos', str(video_name))
-    # output=os.path.join('C:\\Users\\Sihyun\\Desktop\\INISW\\project\\INISW_proj\\web\\www\\static\\outputs',output_video_name)
-    # checkpoint=None
-    # score_thr=0.0
-    # device='cuda'
-    # show=False
-    # backend='cv2'
-    # fps=None
+    flags.DEFINE_string('framework', 'tf', '(tf, tflite, trt')
+    flags.DEFINE_string('weights', 'C:\\Users\\Sihyun\\Desktop\\INISW\\project\\sihyun_track_test\\yolov4-deepsort-master\\checkpoints\\yolov4-416',
+                        'path to weights file')
+    flags.DEFINE_integer('size', 416, 'resize images to')
+    flags.DEFINE_boolean('tiny', False, 'yolo or yolo-tiny')
+    flags.DEFINE_string('model', 'yolov4', 'yolov3 or yolov4')
 
-    flags.DEFINE_string(f'video', '../static/videos/{video_name}', 'path to input video or set to 0 for webcam')
-    flags.DEFINE_string('output', '../static/outputs/{output_video_name}', 'path to output video')
+    flags.DEFINE_string('output_format', 'H264', 'codec used in VideoWriter when saving video to file')
+    flags.DEFINE_float('iou', 0.45, 'iou threshold')
+    flags.DEFINE_float('score', 0.50, 'score threshold')
+    flags.DEFINE_boolean('dont_show', False, 'dont show video output')
+    flags.DEFINE_boolean('info', False, 'show detailed info of tracked objects')
+    flags.DEFINE_boolean('count', False, 'count objects being tracked on screen')
+    flags.DEFINE_string('video', f'C:\\Users\\Sihyun\\Desktop\\INISW\\project\\INISW_proj\\web\\www\\static\\videos\\{video_name}', 'path to input video or set to 0 for webcam')
+    flags.DEFINE_string('output', f'C:\\Users\\Sihyun\\Desktop\\INISW\\project\\INISW_proj\\web\\www\\static\\outputs\\{output_video_name}', 'path to output video')
+    FLAGS = flags.FLAGS
+    FLAGS(sys.argv)
+
+    print("FLAGS.video: ", FLAGS.video)
+    print("FLAGS.output: ", FLAGS.output)
 
     # Definition of the parameters
     max_cosine_distance = 0.4
@@ -91,7 +75,7 @@ def video_tracking(video_id, video_name):
     nms_max_overlap = 1.0
     
     # initialize deep sort
-    model_filename = 'model_data/mars-small128.pb'
+    model_filename = 'C:\\Users\\Sihyun\\Desktop\\INISW\\project\\sihyun_track_test\\yolov4-deepsort-master\\model_data\\mars-small128.pb'
     encoder = gdet.create_box_encoder(model_filename, batch_size=1)
     # calculate cosine distance metric
     metric = nn_matching.NearestNeighborDistanceMetric("cosine", max_cosine_distance, nn_budget)
@@ -116,8 +100,9 @@ def video_tracking(video_id, video_name):
         print(output_details)
     # otherwise load standard tensorflow saved model
     else:
-        saved_model_loaded = tf.saved_model.load(FLAGS.weights, tags=[tag_constants.SERVING])
-        infer = saved_model_loaded.signatures['serving_default']
+        # saved_model_loaded = tf.saved_model.load(FLAGS.weights, tags=[tag_constants.SERVING])
+        # infer = saved_model_loaded.signatures['serving_default']
+        infer = keras.models.load_model(FLAGS.weights)
 
     # begin video capture
     try:
@@ -138,9 +123,20 @@ def video_tracking(video_id, video_name):
         out = cv2.VideoWriter(FLAGS.output, codec, fps, (width, height))
 
     frame_num = 0
+
+    if input_type == 'B':
+        db_draw_box = db_handler.draw_box(video_id, input_keyword)
+        result = pd.DataFrame(db_draw_box)
+        print("## 실제로 그려야되는 오브젝트 아이디 리스트 나왔고~")
+        db_rs = result.drop_duplicates(subset='object_id',keep='first') 
+
+        result_obj_id = db_rs['object_id'].tolist()
+        print("result_obj_id: ", result_obj_id)
+    
     # while video is running
     while True:
         return_value, frame = vid.read()
+        print("들어옴?-1")
         if return_value:
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             image = Image.fromarray(frame)
@@ -148,7 +144,7 @@ def video_tracking(video_id, video_name):
             print('Video has ended or failed, try a different video format!')
             break
         frame_num +=1
-        print('Frame #: ', frame_num)
+        # print('Frame #: ', frame_num)
         frame_size = frame.shape[:2]
         image_data = cv2.resize(frame, (input_size, input_size))
         image_data = image_data / 255.
@@ -169,11 +165,18 @@ def video_tracking(video_id, video_name):
                                                 input_shape=tf.constant([input_size, input_size]))
         else:
             batch_data = tf.constant(image_data)
-            pred_bbox = infer(batch_data)
-            for key, value in pred_bbox.items():
-                boxes = value[:, :, 0:4]
-                pred_conf = value[:, :, 4:]
+            # pred_bbox = infer(batch_data)
+            # for key, value in pred_bbox.items():
+            #     boxes = value[:, :, 0:4]
+            #     pred_conf = value[:, :, 4:]
+            pred_bbox = infer.predict(batch_data)
 
+            for value in pred_bbox:
+                temp_value = np.expand_dims(value, axis=0)
+                boxes = temp_value[:, :, 0:4]
+                pred_conf = temp_value[:, :, 4:]
+
+                
         boxes, scores, classes, valid_detections = tf.image.combined_non_max_suppression(
             boxes=tf.reshape(boxes, (tf.shape(boxes)[0], -1, 1, 4)),
             scores=tf.reshape(
@@ -255,133 +258,49 @@ def video_tracking(video_id, video_name):
             class_name = track.get_class()
             
         # draw bbox on screen
-            color = colors[int(track.track_id) % len(colors)]
-            color = [i * 255 for i in color]
-            cv2.rectangle(frame, (int(bbox[0]), int(bbox[1])), (int(bbox[2]), int(bbox[3])), color, 2)
-            cv2.rectangle(frame, (int(bbox[0]), int(bbox[1]-30)), (int(bbox[0])+(len(class_name)+len(str(track.track_id)))*17, int(bbox[1])), color, -1)
-            cv2.putText(frame, class_name + "-" + str(track.track_id),(int(bbox[0]), int(bbox[1]-10)),0, 0.75, (255,255,255),2)
+            if input_type == 'A':
+                print("들어옴?-2")
+                fps = vid.get(cv2.CAP_PROP_FPS)
 
-        # if enable info flag then print details about each track
-            if FLAGS.info:
-                print("Tracker ID: {}, Class: {},  BBox Coords (xmin, ymin, xmax, ymax): {}".format(str(track.track_id), class_name, (x1, y1, x2, y2)))
-            
-            print("이것이 좌표")
-            print(int(bbox[0]), int(bbox[1]), int(bbox[2]), int(bbox[3]))
-            print("Object-ID: ", str(track.track_id))
-            print("-" * 30)
+                time_in_seconds = frame_num / fps
 
-            db_handler = DBHandler()
+                minutes = int(time_in_seconds // 60)
+                seconds = int(time_in_seconds % 60)
+                milliseconds = int((time_in_seconds - int(time_in_seconds)) * 1000)
 
-            insert_result = db_handler.insert_video_info(frame_num-1, track.track_id, int(bbox[0]), int(bbox[1]), int(bbox[2]), int(bbox[3]))
+                bbox_0 = int(bbox[0]) if int(bbox[0]) > 0 else 0
+                bbox_1 = int(bbox[1]) if int(bbox[1]) > 0 else 0
+                bbox_2 = int(bbox[2]) if int(bbox[2]) > 0 else 0
+                bbox_3 = int(bbox[3]) if int(bbox[3]) > 0 else 0
 
-            print("-" * 30)
-            print("database result: ", insert_result)
-            print("-" * 30)
-            # print(frame_num, track.track_id, int(bbox[0]), int(bbox[1]), int(bbox[2]), int(bbox[3]))
-            # insert_into(frame_num-1, track.track_id, int(bbox[0]), int(bbox[1]), int(bbox[2]), int(bbox[3]))
-            
-            fps = vid.get(cv2.CAP_PROP_FPS)
+                print("들어옴?-3")
+                print(bbox_0, bbox_1, bbox_2, bbox_3)
+                insert_result = db_handler.insert_video_info(frame_num-1, track.track_id, bbox_0, bbox_1, bbox_2, bbox_3, video_id, minutes, seconds)
+                print(insert_result)
+                print("*"*40)
+            elif input_type =='B':
+                if (int(track.track_id) in result_obj_id):
+                    print(int(track.track_id) in result_obj_id)
 
-            time_in_seconds = frame_num / fps
+                    color = colors[int(track.track_id) % len(colors)]
+                    color = [i * 255 for i in color]
+                    cv2.rectangle(frame, (int(bbox[0]), int(bbox[1])), (int(bbox[2]), int(bbox[3])), color, 2)
+                    cv2.rectangle(frame, (int(bbox[0]), int(bbox[1]-30)), (int(bbox[0])+(len(class_name)+len(str(track.track_id)))*17, int(bbox[1])), color, -1)
+                    cv2.putText(frame, class_name + "-" + str(track.track_id),(int(bbox[0]), int(bbox[1]-10)),0, 0.75, (255,255,255),2)
+                else:
+                    continue
+            # print(f"Time for frame {frame_num}: {minutes:02d}:{seconds:02d}.{milliseconds:03d}")
 
-            minutes = int(time_in_seconds // 60)
-            seconds = int(time_in_seconds % 60)
-            milliseconds = int((time_in_seconds - int(time_in_seconds)) * 1000)
-
-            print(f"Time for frame {frame_num}: {minutes:02d}:{seconds:02d}.{milliseconds:03d}")
-
-
-            
-        # calculate frames per second of running detections
-        fps = 1.0 / (time.time() - start_time)
-        print("FPS: %.2f" % fps)
         result = np.asarray(frame)
         result = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
         
-        if not FLAGS.dont_show:
-            cv2.imshow("Output Video", result)
+        # if not FLAGS.dont_show:
+        #     cv2.imshow("Output Video", result)
         
         # if output flag is set, save video file
-        if FLAGS.output:
+        if FLAGS.output and input_type == 'B':
+            print("******************* 저 장 *******************")
             out.write(result)
-    # assert output or show
-    # # load images
-    # if osp.isdir(video_input):
-    #    imgs = sorted(
-    #        filter(lambda x: x.endswith(('.jpg', '.png', '.jpeg')),
-    #               os.listdir(video_input)),
-    #        key=lambda x: int(x.split('.')[0]))
-    #    IN_VIDEO = False
-    # else:
-    #    #들어옴
-    #    imgs = mmcv.VideoReader(video_input)  #The VideoReader class provides sequence like apis to access video frames. It will internally cache the frames which have been visited
-    #    IN_VIDEO = True
-
-    #  # define output
-    # if output is not None:
-    #    #안들어옴
-    #    if output.endswith('.mp4'):
-    #        OUT_VIDEO = True
-    #        out_dir = tempfile.TemporaryDirectory()
-    #        out_path = out_dir.name
-    #        _out = output.rsplit(os.sep, 1)
-    #        if len(_out) > 1:
-    #            os.makedirs(_out[0], exist_ok=True)
-    #    else:
-    #        OUT_VIDEO = False
-    #        out_path = output
-    #        os.makedirs(out_path, exist_ok=True)
-    # if show or OUT_VIDEO:
-    #    if fps is None and IN_VIDEO:
-    #        fps = imgs.fps
-    #    if not fps:
-    #        raise ValueError('Please set the FPS for the output video.')
-    #    fps = int(fps)
-
-    # print('\n-------------\n')
-    # print('모델빌드\n')
-
-    # # build the model from a config file and a checkpoint file
-    # model = init_model(config, checkpoint, device=device)
-
-    # print('\n-------완료------\n')
-    # prog_bar = mmcv.ProgressBar(len(imgs))
-    # # test and show/save the images
-    # for i, img in enumerate(imgs):
-    #     frame_id = i
-    #     if isinstance(img, str):  # img가 str타입인지-> 아님
-    #         img = osp.join(video_input, img)
-
-    #     result = inference_mot(model, img, frame_id, video_id)  #여기만 !
-
-    #     if output is not None:
-    #         if IN_VIDEO or OUT_VIDEO:
-    #             out_file = osp.join(out_path, f'{frame_id:06d}.jpg')
-    #         else:
-    #             out_file = osp.join(out_path, img.rsplit(os.sep, 1)[-1])
-    #     else:
-    #         out_file = None
-
-    #     model.show_result(
-    #         frame_id,
-    #         video_id,
-    #         img,
-    #         result,
-    #         score_thr=score_thr,
-    #         show=show,
-    #         wait_time=int(1000. / fps) if fps else 0,
-    #         out_file=out_file,
-    #         backend=backend)
-    #     prog_bar.update()
-
-    # if output and OUT_VIDEO:
-    #     print(f'making the output video at {output} with a FPS of {fps}')
-    #     mmcv.frames2video(out_path, output, fps=fps, fourcc='avc1')
-    #     out_dir.cleanup()
 
     return json.dumps({'status':'200', 'output_video_name':output_video_name})
     # return caption.
- 
-@video.route('/test_page/video')
-def test_page():
-    return redirect('/#keyword')
