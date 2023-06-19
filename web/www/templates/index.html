@@ -341,8 +341,6 @@
 	})
 
 	$(document).on("click",".del-button",function(){
-		// console.log(this);
-		// console.log($(this).parent());
 		$(this).parent().remove();
 	});
 
@@ -359,11 +357,6 @@
 			var dataArrayToSend = [];
 
 			$(".input-keyword-re").each(function(){
-				// var len = $(this).find("td").length;
-
-				// for(var i=0; i<len; i+=2){
-				// 	dataArrayToSend.push($(this).find("td").eq(i).text());
-				// }
 				var value = $(this).val();
 				dataArrayToSend.push(value);
 			})
@@ -379,8 +372,6 @@
 				},
 				type: 'POST',
 				success: function(data){
-					// console.log(data['output_video']);
-					// console.log(data['final_data']);
 					
 					if (data['status'] == "error_video") {
 						Swal.fire({
@@ -453,7 +444,7 @@
 							}
 						} else {
 							$("#result-cap-content").append(
-								$("<div></div>").attr("class", "row")
+								$("<div></div>").attr("class", "no-result")
 								.append($("<div></div>").text("해당 키워드로 검색된 객체가 없습니다."))
 							)
 						}
@@ -464,8 +455,7 @@
 					console.log(error);
 				},
 			})
-		})
-			
+		})		
 	}
 	
 	function downloadFile() {

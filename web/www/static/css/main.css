@@ -214,3 +214,8 @@ result section
     color: #d9d9d9;
     border-radius: 10px;
 }
+
+.no-result{
+    font-size: 1.5rem;
+    color: black;
+}

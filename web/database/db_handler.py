@@ -1,7 +1,5 @@
-from distutils.command.clean import clean
 import pymysql
 import configparser
-from itertools import islice
 
 class DBHandler:
 	
@@ -107,10 +105,6 @@ class DBHandler:
 		'''
 		cursor.execute(sql)
 		sql_rs = cursor.fetchall()
-
-		print("-왜 문제가 생긴건데?" * 40)
-		print(sql_rs)
-		print("-" * 40)
 		return sql_rs
 	
 	def savecaption(self, data, captions):
@@ -118,10 +112,6 @@ class DBHandler:
 		sql = '''
 			UPDATE video_info_copy1 SET object_cap = %s WHERE object_id = %s
 		'''
-
-		# print("data.iterrows: ", data.iterrows())
-		# print("captions: ", captions)
-
 		try:
 			for index, row in data.iterrows(): # for문으로 object_id, caption matching 하여 올리기
 				cursor.execute(sql, (captions[index], int(row.object_id)))
@@ -157,15 +147,12 @@ class DBHandler:
 
 				sql = sql + '.*$"'
 
-			print("this is get_caption complete sql command", sql)
 			cursor.execute(sql, video_id)
 
 		except pymysql.err.DataError:
 			return False
 
 		sql_rs = cursor.fetchall()
-
-		print(sql_rs)
 		
 		return sql_rs
 	
@@ -194,8 +181,6 @@ class DBHandler:
 
 				sql = sql + '.*$"'
 			
-
-			print("this is draw_box complete sql command", sql)
 			cursor.execute(sql, video_id)
 
 		except pymysql.err.DataError:

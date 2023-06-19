@@ -1,11 +1,9 @@
 from flask import Blueprint
 from database.db_handler import DBHandler
-import json, os, cv2, time
+import json, os, cv2, time, sys
 import pandas as pd
 from absl import flags
 from absl.flags import FLAGS
-import os
-# comment out below line to enable tensorflow logging outputs
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import tensorflow as tf
 physical_devices = tf.config.experimental.list_physical_devices('GPU')
@@ -13,7 +11,6 @@ if len(physical_devices) > 0:
     print("len(physical_devices): ", len(physical_devices))
     tf.config.experimental.set_memory_growth(physical_devices[0], True)
 
-import sys
 sys.path.append("C:\\Users\\Sihyun\\Desktop\\INISW\\project\\sihyun_track_test\\yolov4-deepsort-master")
 
 import core.utils as utils
@@ -42,17 +39,11 @@ def video_tracking(video_id, video_name, input_keyword, input_type):
     video_name = video_name['video_name']
     output_video_name = str(video_name[:(len(video_name)-4)])+'_output.mp4'
 
-    print("-" * 30)
-    print("video_id: ", video_id)
-    print("video_name: ", video_name)
-    print("input_type: ", input_type)
-    print("-" * 30)
-
     flags.DEFINE_string('framework', 'tf', '(tf, tflite, trt')
-    flags.DEFINE_string('weights', 'C:\\Users\\Sihyun\\Desktop\\INISW\\project\\sihyun_track_test\\yolov4-deepsort-master\\checkpoints\\yolov4-416',
+    flags.DEFINE_string('weights', 'C:\\Users\\Sihyun\\Desktop\\INISW\\project\\sihyun_track_test\\yolov4-deepsort-master\\checkpoints\\yolov4-tiny-416',
                         'path to weights file')
     flags.DEFINE_integer('size', 416, 'resize images to')
-    flags.DEFINE_boolean('tiny', False, 'yolo or yolo-tiny')
+    flags.DEFINE_boolean('tiny', True, 'yolo or yolo-tiny')
     flags.DEFINE_string('model', 'yolov4', 'yolov3 or yolov4')
 
     flags.DEFINE_string('output_format', 'H264', 'codec used in VideoWriter when saving video to file')
@@ -63,6 +54,7 @@ def video_tracking(video_id, video_name, input_keyword, input_type):
     flags.DEFINE_boolean('count', False, 'count objects being tracked on screen')
     flags.DEFINE_string('video', f'C:\\Users\\Sihyun\\Desktop\\INISW\\project\\INISW_proj\\web\\www\\static\\videos\\{video_name}', 'path to input video or set to 0 for webcam')
     flags.DEFINE_string('output', f'C:\\Users\\Sihyun\\Desktop\\INISW\\project\\INISW_proj\\web\\www\\static\\outputs\\{output_video_name}', 'path to output video')
+
     FLAGS = flags.FLAGS
     FLAGS(sys.argv)
 
@@ -100,8 +92,6 @@ def video_tracking(video_id, video_name, input_keyword, input_type):
         print(output_details)
     # otherwise load standard tensorflow saved model
     else:
-        # saved_model_loaded = tf.saved_model.load(FLAGS.weights, tags=[tag_constants.SERVING])
-        # infer = saved_model_loaded.signatures['serving_default']
         infer = keras.models.load_model(FLAGS.weights)
 
     # begin video capture
@@ -126,25 +116,28 @@ def video_tracking(video_id, video_name, input_keyword, input_type):
 
     if input_type == 'B':
         db_draw_box = db_handler.draw_box(video_id, input_keyword)
-        result = pd.DataFrame(db_draw_box)
-        print("## 실제로 그려야되는 오브젝트 아이디 리스트 나왔고~")
-        db_rs = result.drop_duplicates(subset='object_id',keep='first') 
-
-        result_obj_id = db_rs['object_id'].tolist()
-        print("result_obj_id: ", result_obj_id)
+        if len(db_draw_box) == 0:
+            return json.dumps({'status': 'fail', 'message': 'No object to track'})
+        else:
+            print("## 실제로 Tracking이 되야 하는 객체 ID 리스트 ##")
+            
+            result = pd.DataFrame(db_draw_box)
+            db_rs = result.drop_duplicates(subset='object_id',keep='first') 
+            result_obj_id = db_rs['object_id'].tolist()
+            print("result_obj_id: ", result_obj_id)
+            print("-" * 70)
     
     # while video is running
     while True:
         return_value, frame = vid.read()
-        print("들어옴?-1")
         if return_value:
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             image = Image.fromarray(frame)
         else:
             print('Video has ended or failed, try a different video format!')
+            session.close()
             break
         frame_num +=1
-        # print('Frame #: ', frame_num)
         frame_size = frame.shape[:2]
         image_data = cv2.resize(frame, (input_size, input_size))
         image_data = image_data / 255.
@@ -165,10 +158,6 @@ def video_tracking(video_id, video_name, input_keyword, input_type):
                                                 input_shape=tf.constant([input_size, input_size]))
         else:
             batch_data = tf.constant(image_data)
-            # pred_bbox = infer(batch_data)
-            # for key, value in pred_bbox.items():
-            #     boxes = value[:, :, 0:4]
-            #     pred_conf = value[:, :, 4:]
             pred_bbox = infer.predict(batch_data)
 
             for value in pred_bbox:
@@ -259,25 +248,24 @@ def video_tracking(video_id, video_name, input_keyword, input_type):
             
         # draw bbox on screen
             if input_type == 'A':
-                print("들어옴?-2")
                 fps = vid.get(cv2.CAP_PROP_FPS)
 
                 time_in_seconds = frame_num / fps
 
                 minutes = int(time_in_seconds // 60)
                 seconds = int(time_in_seconds % 60)
-                milliseconds = int((time_in_seconds - int(time_in_seconds)) * 1000)
 
                 bbox_0 = int(bbox[0]) if int(bbox[0]) > 0 else 0
                 bbox_1 = int(bbox[1]) if int(bbox[1]) > 0 else 0
                 bbox_2 = int(bbox[2]) if int(bbox[2]) > 0 else 0
                 bbox_3 = int(bbox[3]) if int(bbox[3]) > 0 else 0
-
-                print("들어옴?-3")
+                
+                print("*"*70)
+                print("객체 좌표값")
                 print(bbox_0, bbox_1, bbox_2, bbox_3)
                 insert_result = db_handler.insert_video_info(frame_num-1, track.track_id, bbox_0, bbox_1, bbox_2, bbox_3, video_id, minutes, seconds)
-                print(insert_result)
-                print("*"*40)
+                print("DB Input Result: ", insert_result)
+                print("*"*70)
             elif input_type =='B':
                 if (int(track.track_id) in result_obj_id):
                     print(int(track.track_id) in result_obj_id)
@@ -289,18 +277,14 @@ def video_tracking(video_id, video_name, input_keyword, input_type):
                     cv2.putText(frame, class_name + "-" + str(track.track_id),(int(bbox[0]), int(bbox[1]-10)),0, 0.75, (255,255,255),2)
                 else:
                     continue
-            # print(f"Time for frame {frame_num}: {minutes:02d}:{seconds:02d}.{milliseconds:03d}")
 
         result = np.asarray(frame)
         result = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
         
-        # if not FLAGS.dont_show:
-        #     cv2.imshow("Output Video", result)
-        
-        # if output flag is set, save video file
         if FLAGS.output and input_type == 'B':
-            print("******************* 저 장 *******************")
+            print("*"*70)
+            print("Tracking이 되어야 하는 Object만 영상에 표시")
+            print("*"*70)
             out.write(result)
 
     return json.dumps({'status':'200', 'output_video_name':output_video_name})
-    # return caption.
