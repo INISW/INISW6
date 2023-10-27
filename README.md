@@ -28,7 +28,7 @@ image captiong 모델인 BLIP의 fine-tuning에 사용된 데이터셋은 [유�
 <p align="center"><img src="web/www/static/preview/system_overview.png"\></p>
 
 ## Result
-<p align="center"><img src="web/www/static/preview/result_overview.png"\></p>
+<p align="center"><img src="web/www/static/preview/result_preview.png"\></p>
 
 ## Demo website of Tracking with Caption
 #### * Main page for video input
