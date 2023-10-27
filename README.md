@@ -42,3 +42,10 @@ image captiong 모델인 BLIP의 fine-tuning에 사용된 데이터셋은 [유�
 
 #### * Result page
 <p align="center"><img src="web/www/static/preview/result.png"\></p>
+
+## Reference
+* [1] T. Wang, R. Zhang, Z. Lu, F. Zheng, R. Cheng, and P. Luo, “End-to-End Dense Video Captioning with Parallel Decoding,” in 2021 IEEE/CVF International Conference on Computer Vision (ICCV), Montreal, QC, Canada: IEEE, Oct. 2021, pp. 6827–6837. doi: 10.1109/ICCV48922.2021.00677.
+* [2] Jianfeng Wang, Zhengyuan Yang, Xiaowei Hu, Linjie Li, Kevin Lin, Zhe Gan, Zicheng Liu, CeLiu, and Lijuan Wang. Git: A generative image-to-text transformer for vision and language. arXiv preprint arXiv:2205.14100, 2022.
+* [3] MMTracking : https://github.com/open-mmlab/mmtracking
+* [4] Yolov4deepsort : https://github.com/theAIGuysCode/yolov4-deepsort
+
