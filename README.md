@@ -22,7 +22,7 @@ To do this, We finetuned image captioning model BLIP(Bootstrapping Language-Imag
 </details>
 
 ## Data
-image captiong 모델인 BLIP의 fine-tuning에 사용된 데이터셋은 [유동 인구 분석을 위한 CCTV 영상 데이터](https://www.aihub.or.kr/aihubdata/data/view.do?currMenu=115&topMenu=100&aihubDataSe=realm&dataSetSn=489)에 구축된 주석 정보를 활용해 영상에 등장한 인물 사진을 cropping하였습니다. 또한 주석 데이터에 존재하는 외양정보를 조합하여 해당 인물 사진에 해당하는 캡션을 생성하였습니다. 이후 수작업으로 노이즈가 없는 사진-캡션쌍 5천 개를 확보한 후, image augmentation 기법과 gpt API를 활용한 문장 paraphrasing으로 데이터를 증강하여 총 250,000개의 인물 사진-캡션 쌍 데이터를 확보하였습니다.
+image captiong 모델인 BLIP의 fine-tuning에 사용된 데이터셋은 [유동 인구 분석을 위한 CCTV 영상 데이터](https://www.aihub.or.kr/aihubdata/data/view.do?currMenu=115&topMenu=100&aihubDataSe=realm&dataSetSn=489)에 구축된 주석 정보를 활용해 영상에 등장한 인물 사진을 cropping하였습니다. 또한 주석 데이터에 존재하는 외양정보를 조합하여 해당 인물 사진에 해당하는 캡션을 생성하였습니다. 이후 수작업으로 노이즈가 없는 사진-캡션쌍 5천 개를 확보한 후, image augmentation 기법과 gpt API를 활용한 문장 paraphrasing으로 데이터를 증강하여 총 25,000개의 fine-tuning을 위한 인물 사진-캡션 쌍 데이터를 확보하였습니다.
 
 ## Achitecture
 <p align="center"><img src="web/www/static/preview/system_overview.png"\></p>
